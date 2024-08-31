@@ -1,63 +1,81 @@
 const axios = require('axios');
 const cron = require('node-cron');
-const moment = require('moment-timezone');
+const http = require('http');
 
 // Function to check if the website is loaded
 async function checkWebsite(url) {
     try {
         const response = await axios.get(url);
         if (response.status === 200) {
-            console.log(`[${moment().tz("Asia/Kolkata").format('YYYY-MM-DD HH:mm:ss')}] ${url} is fully loaded.`);
+            console.log(`[${new Date().toLocaleString()}] Website is fully loaded.`);
+            return `Website is fully loaded.`;
         } else {
-            console.log(`[${moment().tz("Asia/Kolkata").format('YYYY-MM-DD HH:mm:ss')}] ${url} loaded with status: ${response.status}`);
+            console.log(`[${new Date().toLocaleString()}] Website loaded with status: ${response.status}`);
+            return `Website loaded with status: ${response.status}`;
         }
     } catch (error) {
-        console.error(`[${moment().tz("Asia/Kolkata").format('YYYY-MM-DD HH:mm:ss')}] Error loading ${url}: ${error.message}`);
+        console.error(`[${new Date().toLocaleString()}] Error loading website: ${error.message}`);
+        return `Error loading website: ${error.message}`;
     }
 }
 
 // Function to determine if the current time is within the specified range
 function isWithinTimeRange() {
-    const now = moment().tz("Asia/Kolkata");
-    const hours = now.hours();
-    return (hours >= 7 && hours < 22);
+    const now = new Date();
+    const hours = now.getUTCHours() + 5.5; // Convert UTC to IST
+    return (hours >= 7 && hours < 22); // Check if the time is between 7 AM and 10 PM IST
 }
 
 // Function to get the next scheduled time
 function getNextScheduledTime() {
-    const nextCall = moment().tz("Asia/Kolkata").add(14, 'minutes');
-    return nextCall.format('YYYY-MM-DD HH:mm:ss');
+    const now = new Date();
+    const nextCall = new Date(now.getTime() + 14 * 60 * 1000); // Add 14 minutes
+    return nextCall.toLocaleString();
 }
 
-// Start checking the websites at intervals
-function startChecking(urls, port) {
+// Start checking the website at intervals
+function startChecking(url) {
     // Check immediately on start
-    urls.forEach(url => checkWebsite(url));
+    checkWebsite(url).then(status => {
+        console.log(`[${new Date().toLocaleString()}] ${status}`);
+    });
 
     // Log the next scheduled time
-    console.log(`[${moment().tz("Asia/Kolkata").format('YYYY-MM-DD HH:mm:ss')}] Next function call will be in 14 minutes: ${getNextScheduledTime()}`);
+    console.log(`[${new Date().toLocaleString()}] Next function call will be in 14 minutes: ${getNextScheduledTime()}`);
 
     // Set up a cron job to check every 14 minutes
     cron.schedule('*/14 * * * *', () => {
         if (isWithinTimeRange()) {
-            urls.forEach(url => checkWebsite(url));
-            console.log(`[${moment().tz("Asia/Kolkata").format('YYYY-MM-DD HH:mm:ss')}] Next function call will be in 14 minutes: ${getNextScheduledTime()}`);
+            checkWebsite(url).then(status => {
+                console.log(`[${new Date().toLocaleString()}] ${status}`);
+                console.log(`[${new Date().toLocaleString()}] Next function call will be in 14 minutes: ${getNextScheduledTime()}`);
+            });
         } else {
-            console.log(`[${moment().tz("Asia/Kolkata").format('YYYY-MM-DD HH:mm:ss')}] Outside of checking hours (7 AM to 10 PM IST).`);
+            console.log(`[${new Date().toLocaleString()}] Outside of checking hours (7 AM to 10 PM IST).`);
         }
     });
-
-    console.log(`Server is running on port ${port}`);
 }
 
-// URLs of the websites to check
-const websiteUrls = [
-    'https://www.vegetablesking.in/logo149.png',
-    'https://regenai.onrender.com'
-];
+// URL of the website to check
+const websiteUrl = 'https://www.vegetablesking.in/logo149.png';
 
-// Port number
-const port = 3000;
+// Create an HTTP server
+const port = 3000; // Specify your desired port
+const server = http.createServer(async (req, res) => {
+    if (req.method === 'GET' && req.url === '/check') {
+        const status = await checkWebsite(websiteUrl);
+        res.writeHead(200, { 'Content-Type': 'text/plain' });
+        res.end(status);
+    } else {
+        res.writeHead(404, { 'Content-Type': 'text/plain' });
+        res.end('Not Found');
+    }
+});
 
-// Start checking the websites
-startChecking(websiteUrls, port);
+// Start the server
+server.listen(port, () => {
+    console.log(`Server is running at http://localhost:${port}`);
+});
+
+// Start checking the website
+startChecking(websiteUrl);
