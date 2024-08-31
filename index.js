@@ -7,14 +7,14 @@ async function checkWebsite(url) {
     try {
         const response = await axios.get(url);
         if (response.status === 200) {
-            console.log(`[${new Date().toLocaleString()}] Website is fully loaded.`);
+            console.log(`[${getCurrentIST()}] Website is fully loaded.`);
             return `Website is fully loaded.`;
         } else {
-            console.log(`[${new Date().toLocaleString()}] Website loaded with status: ${response.status}`);
+            console.log(`[${getCurrentIST()}] Website loaded with status: ${response.status}`);
             return `Website loaded with status: ${response.status}`;
         }
     } catch (error) {
-        console.error(`[${new Date().toLocaleString()}] Error loading website: ${error.message}`);
+        console.error(`[${getCurrentIST()}] Error loading website: ${error.message}`);
         return `Error loading website: ${error.message}`;
     }
 }
@@ -30,28 +30,33 @@ function isWithinTimeRange() {
 function getNextScheduledTime() {
     const now = new Date();
     const nextCall = new Date(now.getTime() + 14 * 60 * 1000); // Add 14 minutes
-    return nextCall.toLocaleString();
+    return nextCall.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+}
+
+// Function to get the current time in IST
+function getCurrentIST() {
+    return new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
 }
 
 // Start checking the website at intervals
 function startChecking(url) {
     // Check immediately on start
     checkWebsite(url).then(status => {
-        console.log(`[${new Date().toLocaleString()}] ${status}`);
+        console.log(`[${getCurrentIST()}] ${status}`);
     });
 
     // Log the next scheduled time
-    console.log(`[${new Date().toLocaleString()}] Next function call will be in 14 minutes: ${getNextScheduledTime()}`);
+    console.log(`[${getCurrentIST()}] Next function call will be in 14 minutes: ${getNextScheduledTime()}`);
 
     // Set up a cron job to check every 14 minutes
     cron.schedule('*/14 * * * *', () => {
         if (isWithinTimeRange()) {
             checkWebsite(url).then(status => {
-                console.log(`[${new Date().toLocaleString()}] ${status}`);
-                console.log(`[${new Date().toLocaleString()}] Next function call will be in 14 minutes: ${getNextScheduledTime()}`);
+                console.log(`[${getCurrentIST()}] ${status}`);
+                console.log(`[${getCurrentIST()}] Next function call will be in 14 minutes: ${getNextScheduledTime()}`);
             });
         } else {
-            console.log(`[${new Date().toLocaleString()}] Outside of checking hours (7 AM to 10 PM IST).`);
+            console.log(`[${getCurrentIST()}] Outside of checking hours (7 AM to 10 PM IST).`);
         }
     });
 }
