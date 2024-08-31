@@ -1,23 +1,18 @@
 const axios = require('axios');
 const cron = require('node-cron');
 
-// Counter for the number of iterations
-let iterationCount = 0;
-
 // Function to check if the website is loaded
 async function checkWebsite(url) {
-    iterationCount++; // Increment the counter
     try {
         const response = await axios.get(url);
         if (response.status === 200) {
-            console.log(`[${new Date().toLocaleString()}] Website is fully loaded.`);
+            console.log(`[${new Date().toLocaleString()}] ${url} is fully loaded.`);
         } else {
-            console.log(`[${new Date().toLocaleString()}] Website loaded with status: ${response.status}`);
+            console.log(`[${new Date().toLocaleString()}] ${url} loaded with status: ${response.status}`);
         }
     } catch (error) {
-        console.error(`[${new Date().toLocaleString()}] Error loading website: ${error.message}`);
+        console.error(`[${new Date().toLocaleString()}] Error loading ${url}: ${error.message}`);
     }
-    console.log(`[${new Date().toLocaleString()}] Total iterations so far: ${iterationCount}`); // Log total iterations
 }
 
 // Function to determine if the current time is within the specified range
@@ -34,10 +29,10 @@ function getNextScheduledTime() {
     return nextCall.toLocaleString();
 }
 
-// Start checking the website at intervals
-function startChecking(url) {
+// Start checking the websites at intervals
+function startChecking(urls) {
     // Check immediately on start
-    checkWebsite(url);
+    urls.forEach(url => checkWebsite(url));
 
     // Log the next scheduled time
     console.log(`[${new Date().toLocaleString()}] Next function call will be in 14 minutes: ${getNextScheduledTime()}`);
@@ -45,7 +40,7 @@ function startChecking(url) {
     // Set up a cron job to check every 14 minutes
     cron.schedule('*/14 * * * *', () => {
         if (isWithinTimeRange()) {
-            checkWebsite(url);
+            urls.forEach(url => checkWebsite(url));
             console.log(`[${new Date().toLocaleString()}] Next function call will be in 14 minutes: ${getNextScheduledTime()}`);
         } else {
             console.log(`[${new Date().toLocaleString()}] Outside of checking hours (7 AM to 10 PM IST).`);
@@ -53,8 +48,11 @@ function startChecking(url) {
     });
 }
 
-// URL of the website to check
-const websiteUrl = 'https://www.vegetablesking.in/logo149.png';
+// URLs of the websites to check
+const websiteUrls = [
+    'https://www.vegetablesking.in/logo149.png',
+    'https://combine-keep-alive-with-internal-checks.onrender.com'
+];
 
-// Start checking the website
-startChecking(websiteUrl);
+// Start checking the websites
+startChecking(websiteUrls);
