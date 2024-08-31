@@ -51,7 +51,7 @@ function startChecking(urls) {
 // URLs of the websites to check
 const websiteUrls = [
     'https://www.vegetablesking.in/logo149.png',
-    'https://combine-keep-alive-with-internal-checks.onrender.com'
+    'https://regenai.onrender.com'
 ];
 
 // Start checking the websites
