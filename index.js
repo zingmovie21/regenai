@@ -1,6 +1,6 @@
 const axios = require('axios');
 const cron = require('node-cron');
-const moment = require('moment-timezone'); // Import moment-timezone for handling time zones
+const moment = require('moment-timezone');
 
 // Function to check if the website is loaded
 async function checkWebsite(url) {
@@ -18,19 +18,19 @@ async function checkWebsite(url) {
 
 // Function to determine if the current time is within the specified range
 function isWithinTimeRange() {
-    const now = moment().tz("Asia/Kolkata"); // Get current time in IST
-    const hours = now.hours(); // Get hours in IST
-    return (hours >= 7 && hours < 22); // Check if the time is between 7 AM and 10 PM IST
+    const now = moment().tz("Asia/Kolkata");
+    const hours = now.hours();
+    return (hours >= 7 && hours < 22);
 }
 
 // Function to get the next scheduled time
 function getNextScheduledTime() {
-    const nextCall = moment().tz("Asia/Kolkata").add(14, 'minutes'); // Add 14 minutes in IST
-    return nextCall.format('YYYY-MM-DD HH:mm:ss'); // Format the next call time
+    const nextCall = moment().tz("Asia/Kolkata").add(14, 'minutes');
+    return nextCall.format('YYYY-MM-DD HH:mm:ss');
 }
 
 // Start checking the websites at intervals
-function startChecking(urls) {
+function startChecking(urls, port) {
     // Check immediately on start
     urls.forEach(url => checkWebsite(url));
 
@@ -46,6 +46,8 @@ function startChecking(urls) {
             console.log(`[${moment().tz("Asia/Kolkata").format('YYYY-MM-DD HH:mm:ss')}] Outside of checking hours (7 AM to 10 PM IST).`);
         }
     });
+
+    console.log(`Server is running on port ${port}`);
 }
 
 // URLs of the websites to check
@@ -54,5 +56,8 @@ const websiteUrls = [
     'https://regenai.onrender.com'
 ];
 
+// Port number
+const port = 3000;
+
 // Start checking the websites
-startChecking(websiteUrls);
+startChecking(websiteUrls, port);
